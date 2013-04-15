@@ -1,3 +1,15 @@
 Mitchell Gollub
 
 This is my TFTP Server design for my Network Centric Programming class.
+
+Instructions
+
+Extend your part 1 solution as follows:
+
+(3) Extend your server by implementing the download (read request function) for binary mode in an interative server (only one file request needs to be served at any one time). The server should check whether the file exists in the working directory. If not return the same error packet as in part 1, otherwise proceed to downloading the file. Provide a command line option to set the port number.
+
+Debug and test your server using a real TFTP client. Start the client in a different shell window from a different directory, connect to your server, and use the 'get myfile' command to download the file. Check that the file is successfully copied from the server's to the client's working directory.
+
+(4) Implement a concurrent server to serve multiple connections at the same time using I/O Multiplexing. 
+
+Hint: To conveniently test your server, slow it down by introducing a sleep(1) after every packet transmission [this is assuming you are using testfiles of about 5-10Kb size]. Then open two additional shell widows with two different working directories and start the TFTP client in both windows with a file download. Enable 'trace' mode, before issuing the get command so that you can check that the downloads proceed concurrently.
