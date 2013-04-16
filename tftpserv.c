@@ -5,10 +5,6 @@
 
 	- For project 4, add concurrency (threads)
 */
-<<<<<<< HEAD
-=======
-
->>>>>>> 8e90f4c9d765ff7e135ab5f3d422ea0f90f3349e
 
 #include <stdio.h>
 #include <unistd.h>
@@ -19,36 +15,42 @@
 #include <sys/socket.h>
 
 int REQUEST_LENGTH = 512;
-int errorCode = 5;
 
 /* int sendWRQ
 */
 
 int sendDATA(int sockfd, struct sockaddr_in cliaddr, char *filename)
 {
-	FILE* fileStream;
 	char sendbuf[512];
-	int bufferCount = blockCount = 0;
+	int bufferCount = 0, blockCount = 0, filefd = 0;
 	const int zero = 0;
 	const int three = 3;
 
+	printf("Enters sendDATA Function and initializes\n");
+
 	// Check if file exists, if not send ERROR packet
-	if( (fileStream = fopen(filename, r)) < 0  )
+	if( (filefd = open(filename, 0)) < 0  )
 		sendERROR(sockfd, cliaddr);
 
-	
+	for(;;)
+	{
+		bzero(sendbuf, sizeof(sendbuf));
 
-	bzero(sendbuf, sizeof(sendbuf));
+		memcpy( &sendbuf[bufferCount], &zero, sizeof(zero));
+		bufferCount++;
+		memcpy( &sendbuf[bufferCount], &three, sizeof(three));
+		bufferCount++;
+		memcpy( &sendbuf[bufferCount], &blockCount, sizeof(blockCount));
+		bufferCount+=2;
 
-	memcpy( &sendbuf[bufferCount], &zero, sizeof(zero));
-	bufferCount++;
-	memcpy( &sendbuf[bufferCount], &three, sizeof(three));
-	bufferCount++;
-	memcpy( &sendbuf[bufferCount], &blockCount, sizeof(blockCount));
-	bufferCount+=2;
+		read( filefd, &sendbuf[bufferCount], 508);
 
-	
+		//sendto(sockfd, sendbuf, sizeof(sendbuf), 0);
+		write(1, sendbuf, sizeof(sendbuf));
 
+		if( sizeof(sendbuf) < 512 )
+			break;
+	}
 }
 
 /*int sendACK(int sockfd, struct sockaddr_in cliaddr)
@@ -96,7 +98,7 @@ int sendERROR(int sockfd, struct sockaddr_in cliaddr)
 
 	
 
-void ParseRequest(char *recvmesg, int numBytesReceived, struct sockaddr_in cliaddr, int requestBit, char* Filename, char* Mode, char* ClientIP)
+void ParseRequest(char *recvmesg, int numBytesReceived, struct sockaddr_in cliaddr, int *requestBit, char* Filename, char* Mode, char* ClientIP)
 {
 	char RRQ[4] = "RRQ ";
 	char WRQ[4] = "WRQ ";
@@ -114,25 +116,17 @@ void ParseRequest(char *recvmesg, int numBytesReceived, struct sockaddr_in cliad
 	bzero(mode, sizeof(mode));
 	bzero(clientIP, sizeof(clientIP));
 
-<<<<<<< HEAD
 	// Check for RRQ/WRQ
 
 	if ((recvmesg[0] == 0) && (recvmesg[1] == 1))
 		{
 			memcpy(parsedmesg, RRQ, sizeof(RRQ));
-			requestBit = 1;
+			*requestBit = 1;
 		}
-=======
-	// Check for RRQ
-
-	if ((recvmesg[0] == 0) && (recvmesg[1] == 1))
-		memcpy(parsedmesg, RRQ, sizeof(RRQ));
-
->>>>>>> 8e90f4c9d765ff7e135ab5f3d422ea0f90f3349e
 	else if ((recvmesg[0] == 0) && (recvmesg[1] == 1))
 		{
 			memcpy(parsedmesg, WRQ, sizeof(WRQ));
-			requestBit = 2;
+			*requestBit = 2;
 		}
 	else
 		perror("Not RRQ/WRQ packet");
@@ -188,11 +182,6 @@ void ParseRequest(char *recvmesg, int numBytesReceived, struct sockaddr_in cliad
 		memcpy(&parsedmesg[parsecount], from, sizeof(from));
 		parsecount+=strlen(from);
 
-<<<<<<< HEAD
-=======
-		write(1, parsedmesg, sizeof(parsedmesg));
-
->>>>>>> 8e90f4c9d765ff7e135ab5f3d422ea0f90f3349e
 		int a, b, c, d;
 		unsigned long host;
 		host = ntohl(cliaddr.sin_addr.s_addr);
@@ -212,20 +201,17 @@ void ParseRequest(char *recvmesg, int numBytesReceived, struct sockaddr_in cliad
 		memcpy(Mode, mode, sizeof(mode));
 		memcpy(ClientIP, clientIP, sizeof(clientIP));
 }
-<<<<<<< HEAD
 
-=======
->>>>>>> 8e90f4c9d765ff7e135ab5f3d422ea0f90f3349e
 	
 int main(int argc, char **argv)
 {
-	int sockfd, port;
+	int sockfd, tftpPort;
 	struct sockaddr_in servaddr, cliaddr;
 
 	if( argc != 2 )
 		perror("Usage: ./tftpserv <port number>\n");
 
-	port = atoi(argv[1]);
+	tftpPort = atoi(argv[1]);
 
 	if( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
 		perror("socket error");
@@ -248,71 +234,28 @@ int main(int argc, char **argv)
 	bzero(recvmesg, sizeof(recvmesg));
 	bzero(parsedmesg, sizeof(parsedmesg));
 
-<<<<<<< HEAD
 	for(;;)
 	{
 	numBytesReceived = recvfrom(sockfd, recvmesg, REQUEST_LENGTH, 0, (struct sockaddr*) &cliaddr, &length);
-=======
-
-	//for(;;)
-	//{
-		numBytesReceived = recvfrom(sockfd, recvmesg, REQUEST_LENGTH, 0, (struct sockaddr*) &cliaddr, &length);
->>>>>>> 8e90f4c9d765ff7e135ab5f3d422ea0f90f3349e
 
 	// Parse Function -- Take string as input buffer, parse request and put into new buffer to print.  Extracts filename, TFTP mode, client IP address
 	int requestBit;
 	char filename[50];
 	char mode[10];
 	char clientIP[16];
-<<<<<<< HEAD
-	ParseRequest(recvmesg, numBytesReceived, cliaddr, requestBit, filename, mode, clientIP);
+	ParseRequest(recvmesg, numBytesReceived, cliaddr, &requestBit, filename, mode, clientIP);
+
 
 	// RRQ
 	if(requestBit == 1)
-		// sendDATA
+		sendDATA(sockfd, cliaddr, filename);
 
 	// WRQ
 	if(requestBit == 2)
-		// writeDATA
+		{}// writeDATA
 
 	sendERROR(sockfd, cliaddr);
 
 	}
-=======
-	ParseRequest(recvmesg, numBytesReceived, cliaddr, filename, mode, clientIP);
-
-	write(1, filename, sizeof(filename));
-	write(1, mode, sizeof(mode));
-	write(1, clientIP, sizeof(clientIP));
-
-	char sendbuf[REQUEST_LENGTH];
-	int bufferCount = 0;
-	const int zero = 0;
-	const int one = 1;
-	const int five = 5;
-	char FileNotFound[] = "File Not Found";
-
-	bzero(sendbuf, sizeof(sendbuf));
-
-	memcpy( &sendbuf[bufferCount], &zero, sizeof(zero));
-	bufferCount++;
-	memcpy( &sendbuf[bufferCount], &five, sizeof(five));
-	bufferCount++;
-	memcpy( &sendbuf[bufferCount], &zero, sizeof(zero));
-	bufferCount++;
-	memcpy( &sendbuf[bufferCount], &one, sizeof(one));
-	bufferCount++;
-	memcpy( &sendbuf[bufferCount], FileNotFound, sizeof(FileNotFound));
-	bufferCount += strlen(FileNotFound);
-	memcpy( &sendbuf[bufferCount], &zero, sizeof(zero));
-
-	// Write error message to STDOUT
-	write(1, sendbuf, sizeof(sendbuf));
-
-	if( (sendto(sockfd, sendbuf, sizeof(sendbuf), 0, (struct sockaddr*) &cliaddr, sizeof(cliaddr))) < 0 )
-		perror("Error Sending Error Packet");
-
-	//}
->>>>>>> 8e90f4c9d765ff7e135ab5f3d422ea0f90f3349e
 	return 0;	
 }
